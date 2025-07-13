@@ -119,10 +119,10 @@ namespace CodeBuilder
                 case Knight_Type.Egress:
                     fileText = await Knight_Egress(opt);
                     break;
-                case Knight_Type.P2P_NAMEDPIPE_SERVER:
+                case Knight_Type.P2P_SMB_SERVER:
                     fileText = await Knight_SMB_Server(opt);
                     break;
-                case Knight_Type.P2P_NAMEDPIPE_CLIENT:
+                case Knight_Type.P2P_SMB_CLIENT:
                     //fileText = await Knight_SMB_Client(opt);
                     break;
                 case Knight_Type.P2P_TCP_SERVER:

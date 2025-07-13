@@ -61,6 +61,7 @@
                     <MudTextField T="string" Label="File" @bind-Value="@_file" Required="false"
                     Immediate="@true" />
                 </MudForm>
+                
                 @* <MudFileUpload T="IBrowserFile" FilesChanged="UploadFiles">
                     <ButtonTemplate>
                         <MudButton Size="Size.Small" HtmlTag="label" Variant="Variant.Filled" Color="Color.Dark"
@@ -68,6 +69,16 @@
                         <MudText>@_uploadName - @_uploadSize bytes</MudText>
                     </ButtonTemplate>
                 </MudFileUpload> *@
+
+                <MudFileUpload T="IBrowserFile" FilesChanged="UploadFiles">
+                    <ActivatorContent>
+                        <MudButton Variant="Variant.Filled" Color="Color.Default" StartIcon="@Icons.Material.Filled.CloudUpload">
+                            Upload File
+                        </MudButton>
+                        <MudText>@_uploadName - @_uploadSize bytes</MudText>
+                    </ActivatorContent>
+                </MudFileUpload>
+
             </MudStack>
         </MudItem>
 
@@ -194,29 +205,29 @@
     }
 
     // Upload File
-    // private async void UploadFiles(IBrowserFile data)       // PROBLEM: seems like data is not read in binary-mode (encoding and running execute-assembly does not work)
-    // {
-    //     try
-    //     {
-    //         // read file and set data to the _file var
-    //         // Need to open a stream to read [https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.components.forms.ibrowserfile.openreadstream?view=aspnetcore-7.0#microsoft-aspnetcore-components-forms-ibrowserfile-openreadstream(system-int64-system-threading-cancellationtoken)]
-    //         using (Stream stream = data.OpenReadStream(1200000)) // 1.2 GB
-    //         {
-    //             using (StreamReader reader = new StreamReader(stream))
-    //             {
-    //                 _file = await reader.ReadToEndAsync();
-    //             }
-    //         }
+    private async void UploadFiles(IBrowserFile data)       // PROBLEM: seems like data is not read in binary-mode (encoding and running execute-assembly does not work)
+    {
+        try
+        {
+            // read file and set data to the _file var
+            // Need to open a stream to read [https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.components.forms.ibrowserfile.openreadstream?view=aspnetcore-7.0#microsoft-aspnetcore-components-forms-ibrowserfile-openreadstream(system-int64-system-threading-cancellationtoken)]
+            using (Stream stream = data.OpenReadStream(1200000)) // 1.2 GB
+            {
+                using (StreamReader reader = new StreamReader(stream))
+                {
+                    _file = await reader.ReadToEndAsync();
+                }
+            }
 
-    //         _uploadName = data.Name;
-    //         _uploadSize = data.Size;
-    //         await InvokeAsync(StateHasChanged);
-    //     }
-    //     catch (Exception e)
-    //     {
-    //         OnError(e.ToString());
-    //     }
-    // }
+            _uploadName = data.Name;
+            _uploadSize = data.Size;
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception e)
+        {
+            OnError(e.ToString());
+        }
+    }
 
     // Encode File
     // private void Encode() // NEEDS a check, can encode more than once this way

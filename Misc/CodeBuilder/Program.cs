@@ -39,14 +39,14 @@ namespace CodeBuilder
             await BuildKnight(Knight_Type.Egress);
             Console.WriteLine("\n" + spacer + $"Compiling: Knight with {Knight_Type.P2P_TCP_SERVER}");
             await BuildKnight(Knight_Type.P2P_TCP_SERVER);            
-            Console.WriteLine("\n" + spacer + $"Compiling: Knight with {Knight_Type.P2P_NAMEDPIPE_SERVER}");
-            await BuildKnight(Knight_Type.P2P_NAMEDPIPE_SERVER);
+            Console.WriteLine("\n" + spacer + $"Compiling: Knight with {Knight_Type.P2P_SMB_SERVER}");
+            await BuildKnight(Knight_Type.P2P_SMB_SERVER);
 
             // Clients will be supported later
             //Console.WriteLine("\n" + spacer + $"Compiling: Knight with {Knight_Type.P2P_TCP_CLIENT}");
             //await BuildKnight(Knight_Type.P2P_TCP_CLIENT);
-            //Console.WriteLine("\n" + spacer + $"Compiling: Knight with {Knight_Type.P2P_NAMEDPIPE_CLIENT}");
-            //await BuildKnight(Knight_Type.P2P_NAMEDPIPE_CLIENT);
+            //Console.WriteLine("\n" + spacer + $"Compiling: Knight with {Knight_Type.P2P_SMB_CLIENT}");
+            //await BuildKnight(Knight_Type.P2P_SMB_CLIENT);
         }
 
         private static async Task BuildArsenal()

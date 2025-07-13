@@ -199,8 +199,8 @@ namespace CodeBuilder
         Egress,
         P2P_TCP_SERVER,
         P2P_TCP_CLIENT,
-        P2P_NAMEDPIPE_SERVER,
-        P2P_NAMEDPIPE_CLIENT
+        P2P_SMB_SERVER,
+        P2P_SMB_CLIENT
     }
 
     public enum SharedArsenal_Interop
