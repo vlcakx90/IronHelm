@@ -1,0 +1,242 @@
+﻿@* <h3>CommanderTabRazor</h3>
+
+<Helm.Shared.Components.Pages.Weather />
+
+@code {
+
+}
+ *@
+
+@* @namespace ListenerComponent *@
+@* @page "/commanders" *@
+
+@using Helm.Shared.Services
+@using Helm.Shared.SwaggerApi
+
+@inject CommanderService CommanderService
+@inject ISnackbar SnackbarService
+@inject IDialogService DialogService
+
+@* <MudExpansionPanel Text="@BuildListenersTitle()" Icon="@Icons.Material.Filled.Headphones" IsInitiallyExpanded="true"> *@
+<MudTable Outlined="true" Items="@commanders" Hover="true" Loading="@_loading" LoadingProgressColor="Color.Info">
+    <HeaderContent>
+        <MudTh>Name</MudTh>
+        <MudTh>Type</MudTh>
+        <MudTh>Secured</MudTh>
+        <MudTh>Port</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Name">@context.Name</MudTd>
+        @*<MudTd DataLabel="Type">@context.Type</MudTd>*@
+        <MudTd DataLabel="Type">@GetCommanderType(context.Type)</MudTd>
+        <MudTd DataLabel="Secured">@context.Tls</MudTd>
+        <MudTd DataLabel="Port">@context.BindPort</MudTd>
+        <MudTd>
+            <MudButton Class="pa-4 mud-warning-text" Variant="Variant.Outlined" Size="Size.Small"
+            OnClick="@(() => OnDeleteCommander(context.Name))">Delete</MudButton>
+        </MudTd>
+    </RowTemplate>
+</MudTable>
+
+<br>
+
+<MudContainer>
+    <MudGrid Spacing="2" Justify="Justify.Center">
+        <MudItem xs="3">
+            <MudStack Row="true">
+                <MudForm @bind-IsValid="@_success">
+                    <MudTextField @bind-Value="@_commanderName" T="string" Label="Name" Required="true" RequiredError="Name is required!" />
+                </MudForm>
+                <MudForm>
+                    <MudTextField @bind-Value="@_commanderrBindport" T="int" Label="Bind Port" Required="true" RequiredError="Bind Port is required!" OnlyValidateIfDirty="true" />
+                </MudForm>
+                @* <MudForm>
+                    <MudTextField @bind-Value="@_tls" T="bool" Label="TLS" Required="true" RequiredError="TLS is required!" OnlyValidateIfDirty="true" />
+                </MudForm> *@
+                <MudCheckBox @bind-Value="_tls" Color="Color.Primary">TLS</MudCheckBox>
+            </MudStack>
+        </MudItem>
+
+        <MudItem xs="3">
+            <MudButton Class="mt-4" Size="Size.Medium" EndIcon="@Icons.Material.Filled.Add" Variant="Variant.Outlined" Color="Color.Primary" Disabled="@(!_success)" OnClick="CreateCommander">Create</MudButton>
+        </MudItem>
+    </MudGrid>
+    @* <br />
+    <MudGrid Spacing="2" Justify="Justify.Center">
+        <MudItem xs="6">
+            <MudText Align="Align.Start">Quick Create</MudText>
+            <MudButtonGroup Color="Color.Secondary" Variant="Variant.Outlined">
+                <MudButton OnClick="@(() => CreateDefaultCommander("Http-8080", "8080", false))">Http-8080</MudButton>
+                <MudButton OnClick="@(() => CreateDefaultCommander("Https-8443", "8443", true))">Https-8443</MudButton>
+            </MudButtonGroup>
+        </MudItem>
+    </MudGrid> *@
+</MudContainer>
+@* </MudExpansionPanel> *@
+
+@code
+{
+    private bool _loading;
+    //private bool _refresh = true;
+
+    private string colorBlue = $"color:{Colors.Blue.Lighten2};";
+    private bool _success;
+    private MudForm form;
+    private string _commanderName = "";
+    private int _commanderrBindport = 8080;
+    private bool _tls = false;
+
+    private List<Commander> commanders = new List<Commander>();
+
+    private Timer timer;
+    private int _debugCount = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        timer = new Timer(Tick, null, 0, 1000);        
+        await GetCommanders();
+    }
+    private string GetCommanderType(COMMANDER_TYPE type)
+    {
+        return type.ToString();        
+    }
+
+    private async Task OnRefresh()
+    {        
+        await GetCommanders();
+    }
+
+    private async Task GetCommanders()
+    {
+        try
+        {
+            _debugCount++;
+            commanders = await CommanderService.GetCommandersAsync();
+        }
+        catch (Exception e)
+        {
+            OnError(e.ToString());
+        }
+    }
+
+    private async Task CreateCommander()
+    {
+        try
+        {
+            _debugCount++;
+            Commander listener = await CommanderService.CreateCommanderAsync(new StartHttpCommanderRequest
+                {
+                    Name = _commanderName,
+                    BindPort = _commanderrBindport,
+                    Tls = _tls
+                });
+
+            commanders.Add(listener);            
+        }
+        catch (Exception e)
+        {
+            OnError(e.ToString());
+        }
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    // private async Task CreateDefaultCommander(string name, string port, bool tls)
+    // {
+    //     try
+    //     {
+    //         _debugCount++;
+    //         Commander listener = await CommanderService.CreateCommanderAsync(new StartHttpCommanderRequest
+    //             {
+    //                 Name = name,
+    //                 BindPort = Convert.ToInt32(port),
+    //                 Tls = tls
+    //             });
+
+    //         commanders.Add(listener);
+    //     }
+    //     catch (Exception e)
+    //     {
+    //         OnError(e.ToString());
+    //     }
+
+    //     await InvokeAsync(StateHasChanged);
+    // }
+
+    private async Task OnDeleteCommander(string name)
+    {
+        bool? result = await DialogService.ShowMessageBox(
+            "Warning",
+            "Are you sure you want to delete?",
+            yesText: "Delete!", cancelText: "Cancel");
+
+        if (result is not null)
+        {
+            try
+            {
+                _debugCount++;
+                await CommanderService.DeleteCommanderAsync(name);
+            }
+            catch (Exception e)
+            {
+                OnError(e.ToString());
+            }
+            await GetCommanders();
+        }
+    }
+
+    private string BuildCommandersTitle()
+    {
+        return $"Listeners | {commanders.Count}";
+    }
+
+    // Could pass functions to an error system but changing the API to return some error would be better, see notes
+    //private async Task Test()
+    //{
+    //    InvokeMethod(() => CreateListener());
+    //}
+
+    //private void InvokeMethod(Action action)
+    //{
+    //    try
+    //    {
+    //        action();
+    //    }
+    //    catch (Exception e)
+    //    {
+    //        OnError(e.ToString());
+    //    }
+    //}
+
+    private void OnError(string msg)
+    {
+        var config = (SnackbarOptions options) =>
+        {
+            options.DuplicatesBehavior = SnackbarDuplicatesBehavior.Prevent;
+        };
+
+        if (msg.Length > 500)
+        {
+            msg = msg.Substring(0, 500);
+            msg += "...";
+        }
+
+        SnackbarService.Configuration.PositionClass = Defaults.Classes.Position.BottomRight;
+        SnackbarService.Add("Error: " + msg, Severity.Error, configure: config, key: "listener-error");
+    }
+
+    private async void Tick(object _)
+    {
+        // if (_refresh)
+        // {
+            //debugCount++;
+            await GetCommanders();
+            await InvokeAsync(StateHasChanged);
+        //}
+    }
+
+    public void Dispose()
+    {
+        timer?.Dispose();
+    }
+}

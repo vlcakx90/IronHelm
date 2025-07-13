@@ -1,0 +1,150 @@
+﻿@using Helm.Shared.Services
+@using Helm.Shared.SwaggerApi
+
+@inject KnightService KnightService
+@inject ISnackbar SnackbarService
+@inject IDialogService DialogService
+
+
+<MudTable Outlined="true" Items="@_knights" Hover="true" Loading="@_loading" LoadingProgressColor="Color.Info">
+    <HeaderContent>
+        <MudTh>IP Address</MudTh>
+        <MudTh>Hostname</MudTh>
+        <MudTh>Interity</MudTh>
+        @* <MudTh>Listener</MudTh> *@
+        <MudTh>User</MudTh>
+        <MudTh>Process</MudTh>
+        <MudTh>Pid</MudTh>
+        <MudTh>x64</MudTh>
+        <MudTh>Last Seen</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd Class="mud-primary-text" DataLabel="IP Address">@context.Metadata.Address</MudTd>
+        <MudTd DataLabel="Hostname">@context.Metadata.Hostname</MudTd>
+        @if (@context.Metadata.Integrity == Integrity.MEDIUM)
+        {
+            <MudTd DataLabel="Integrity" Class="mud-default-text">@context.Metadata.Integrity</MudTd>
+        }
+        else if (@context.Metadata.Integrity == Integrity.HIGH)
+        {
+            <MudTd DataLabel="Integrity" Class="mud-warning-text">@context.Metadata.Integrity</MudTd>
+        }
+        else if (@context.Metadata.Integrity == Integrity.SYSTEM)
+        {
+            <MudTd DataLabel="Integrity" Class="mud-error-text">@context.Metadata.Integrity</MudTd>
+        }
+        <MudTd DataLabel="User">@context.Metadata.Username</MudTd>
+        <MudTd DataLabel="Process">@context.Metadata.ProcessName</MudTd>
+        <MudTd Class="mud-primary-text" DataLabel="PID">@context.Metadata.ProcessId</MudTd>
+        <MudTd DataLabel="Arch">@context.Metadata.X64</MudTd>
+        <MudTd DataLabel="Last Seen">@context.LastSeen</MudTd>
+
+        <MudTd>
+            @if (helmTabs != null) @* FIX ME --> helmTabs is null unless I click AddCommanderTab in appbar*@
+            {
+                <MudButton Class="pa-4 mud-success-text" Variant="Variant.Outlined" Size="Size.Small"
+                OnClick="@(() => helmTabs.AddKnightTab(context.Metadata))">Interact</MudButton>
+            }
+            else
+            {
+                <MudAlert Severity="Severity.Error">helmTabs is null (not passed From /helm yet?)</MudAlert>
+                <MudText>Click Add Commander to fix...</MudText>
+            }
+        </MudTd>
+        <MudTd>
+            <MudButton Class="pa-4 mud-warning-text" Variant="Variant.Outlined" Size="Size.Small" OnClick="@(() => OnRemoveAgent(context.Metadata.Id))">Remove</MudButton>
+        </MudTd>
+        <MudTd>
+            <MudButton Class="pa-4 mud-error-text" Variant="Variant.Outlined" Size="Size.Small" OnClick="@(() => OnTaskKnightExit(context.Metadata.Id))">Exit</MudButton>
+        </MudTd>
+    </RowTemplate>
+</MudTable>
+
+@code {
+    [Parameter]
+    public HelmTabs helmTabs { get; set; }
+
+    private bool _loading;
+    List<Knight> _knights = new List<Knight>();
+
+    private Timer timer;
+    private int refreshTime = 1000;
+
+    protected override async Task OnInitializedAsync()
+    {
+        base.OnInitialized();
+        timer = new Timer(Tick, null, 0, refreshTime);
+        await GetKnights();
+    }
+
+    private async Task GetKnights()
+    {
+        try
+        {
+            _knights = await KnightService.GetKnightsAsync();
+        }
+        catch (Exception e)
+        {
+
+        }
+    }
+
+    private async Task OnTaskKnightExit(string knightId) // Will not show up in KnightTab unless Get Historys is called
+    {
+        try
+        {
+            bool? result = await DialogService.ShowMessageBox(
+            "Warning",
+            "Are you sure you want to exit the agent?",
+            yesText: "Exit!", cancelText: "Cancel");
+
+            if (result is not null)
+            {
+            TaskMessage taskMessage = await KnightService.TaskKnightAsync(knightId, new TaskKnightRequest
+                {
+                    Command = "exit",
+                    Arguments = new string[0],
+                    File = string.Empty
+                //File = new byte[0] // Server expects base64 string
+                });
+            }
+        }
+        catch (Exception e)
+        {
+            OnError(e.ToString());
+        }
+    }
+
+    private async Task OnRemoveAgent(string agentId)
+    {
+        await KnightService.RemoveKnightAsync(agentId);
+    }
+
+    private void OnError(string msg)
+    {
+        var config = (SnackbarOptions options) =>
+        {
+            options.DuplicatesBehavior = SnackbarDuplicatesBehavior.Prevent;
+        };
+
+        if (msg.Length > 500)
+        {
+            msg = msg.Substring(0, 500);
+            msg += "...";
+        }
+
+        SnackbarService.Configuration.PositionClass = Defaults.Classes.Position.BottomRight;
+        SnackbarService.Add("Error: " + msg, Severity.Error, configure: config, key: "listener-error");
+    }
+
+    private async void Tick(object _)
+    {
+        await GetKnights();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        timer?.Dispose();
+    }
+}

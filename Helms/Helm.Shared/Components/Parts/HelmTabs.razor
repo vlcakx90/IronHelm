@@ -1,0 +1,153 @@
+﻿@using Helm.Shared.SwaggerApi
+@using Helm.Shared.Models.HelmTabs
+@using Helm.Shared.Components.Parts.HelmTabRazors
+
+@inject ISnackbar SnackbarService
+
+<MudContainer MaxWidth="MaxWidth.ExtraExtraLarge">
+    <MudButtonGroup Color="Color.Primary" Variant="Variant.Outlined">
+        @* <MudButton OnClick="AddCommanderTab">Add Commander Tab</MudButton>
+        <MudButton OnClick="@(()=> AddKnightTab(Guid.NewGuid().ToString()))">Add KnightTab</MudButton>
+        <MudButton OnClick="AddScoutTab">Add Scout Tab</MudButton> *@
+    </MudButtonGroup>
+</MudContainer>
+
+<MudDynamicTabs @ref="@_mudTabs" @bind-ActivePanelIndex="@_tabIndex"
+CloseTab="@CloseTabCallback" CloseIconToolTip="Close tab"
+PanelClass="px-4 py-6" Elevation="4" Rounded ApplyEffectsToContainer
+Position="Position.Top">
+
+    @foreach (var tab in _helmTabs)
+    {
+        @* <MudTabPanel ID="@tab.Id" Text="@tab.Title" ShowCloseIcon="@_showCloseIcon"> *@ @* Cant do this here because the casts below won't work lol *@
+        if (tab.Type == HelmTabType.COMMANDER)
+        {
+            <MudTabPanel ID="@tab.Id" Text="@tab.Title" ShowCloseIcon="@_showCloseIcon">
+                <CommanderTabRazor />
+            </MudTabPanel>
+        }
+        else if (tab.Type == HelmTabType.KNIGHT)
+        {
+            var t = (Models.HelmTabs.KnightTab)tab;
+            <MudTabPanel ID="@tab.Id" Text="@tab.Title" ShowCloseIcon="@_showCloseIcon">
+                <KnightTabRazor KnightId="@t.Id" />
+            </MudTabPanel>
+        }        
+    }
+
+</MudDynamicTabs>
+
+
+@code {
+    private bool _loading;
+    private List<HelmTab> _helmTabs = new List<HelmTab>();
+    private MudDynamicTabs _mudTabs;
+    private int _tabIndex;
+    private bool _showCloseIcon = true;
+
+    protected override async Task OnInitializedAsync() 
+    {
+        //await AddCommanderTab();
+    }
+
+    // protected override async Task OnAfterRenderAsync(bool firstRender)
+    // {
+    //     if (firstRender)
+    //     {
+    //         await AddCommanderTab();
+    //     }
+    // }
+
+    // ---------------------------------------------------------------------------------------------------- ADD TAB LOGIC
+    public async Task AddCommanderTab()
+    {
+        _helmTabs.Add(new CommanderTab
+            {
+                Id = Guid.NewGuid().ToString(),
+                Title = "Commander"
+            });
+        StateHasChanged();
+    }
+
+    public async Task AddKnightTab(KnightMetadata metadata)
+    {
+        bool tab = _helmTabs.Any((t) => Equals(t.Id, metadata.Id));
+
+        if (tab == false)
+        {
+            _helmTabs.Add(new KnightTab
+                {
+                    Id = metadata.Id, //Guid.NewGuid().ToString(),
+                    Title = $"{metadata.Address}@{metadata.ProcessId}"
+                //KnightId = KnightId.Remove(4)
+                });
+            StateHasChanged();
+        }
+    }
+
+    public async Task RemoveKnightTab(string knightId)
+    {
+        await RemoveTab(knightId);
+        StateHasChanged();
+    }
+
+    // ---------------------------------------------------------------------------------------------------- TAB BASE LOGIC
+    private async Task RemoveTab(string id) // Change so the data isnt lost?
+    {
+        // bool? result = await DialogService.ShowMessageBox(
+        //     "Warning",
+        //     "<add something here?>",
+        //     yesText: "Close!", cancelText: "Cancel");
+
+        // if (result is null)
+        // {
+        //     return;
+        // }
+
+        try
+        {
+            HelmTab? tab = _helmTabs.SingleOrDefault((t) => Equals(t.Id, id));
+            if (tab is not null)
+            {
+                _helmTabs.Remove(tab);
+                //_stateHasChanged = true;
+                StateHasChanged();
+            }
+        }
+        catch (Exception e)
+        {
+            OnError(e.ToString());
+        }
+    }
+
+    //void CloseTabCallback(MudTabPanel panel) => RemoveTab((Guid)panel.ID);
+    private async Task CloseTabCallback(MudTabPanel panel)
+    {
+        try
+        {
+            await RemoveTab((string)panel.ID);
+        }
+        catch (Exception e)
+        {
+            OnError(e.ToString());
+        }
+    }
+
+    ///////////////////////////////////////////// SnackBar
+    private void OnError(string msg)
+    {
+        var config = (SnackbarOptions options) =>
+        {
+            options.DuplicatesBehavior = SnackbarDuplicatesBehavior.Prevent;
+        };
+
+        if (msg.Length > 500)
+        {
+            msg = msg.Substring(0, 500);
+            msg += "...";
+        }
+
+        SnackbarService.Configuration.PositionClass = Defaults.Classes.Position.BottomRight;
+        SnackbarService.Add("Error: " + msg, Severity.Error, configure: config, key: "error"); // Will be same key for all, CHANGE ME
+    }
+}

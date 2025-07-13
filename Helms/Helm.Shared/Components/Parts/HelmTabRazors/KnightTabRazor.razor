@@ -1,0 +1,327 @@
+﻿@using Helm.Shared.Services
+@using Helm.Shared.SwaggerApi
+@using System.Text
+
+@inject KnightService KnightService
+@inject ISnackbar SnackbarService
+
+@* Table *@
+<div id="unique_id_scroll_section" class="ma-0" style="height: 300px; overflow: auto;">
+    @*CHaning the height sometimes stops the scrolling*@                    
+    @foreach (KnightHistory hist in _history) // Load each Task
+    {
+        <MudExpansionPanel Icon="@Icons.Material.Filled.Check" IsInitiallyExpanded="true" Text=@BuildTaskTitle(hist.TaskSentAt.ToString(), hist.Command)>
+            <MudContainer Class="py-4">
+                <MudCard>
+                    <MudCardContent>
+                        <MudText>Task Info</MudText>
+                        <MudText Typo="Typo.body2">args > @CollectionToString(hist.Arguments) <br>file > @BytesToString(hist.File)</MudText>
+                    </MudCardContent>
+                </MudCard>
+            </MudContainer>
+
+            <MudContainer Class="py-4">
+                @if (hist.Status == KNIGHT_TASK_STATUS.FINISHED) // Load Task and Result or Pending
+                {
+                    <MudCard>
+                        <MudCardContent>
+                            <MudText>@BuildTaskTitle(hist.ResultsAt.ToString(), "Result")</MudText>                            
+                            <MudText Typo="Typo.body2">@hist.Result</MudText>
+                        </MudCardContent>
+                    </MudCard>
+                }
+                else
+                {
+                    <MudProgressCircular Color="Color.Warning" Indeterminate="true" />
+                }
+            </MudContainer>
+        </MudExpansionPanel>
+    }
+</div>
+
+@* Task Form *@
+<MudContainer id="task-form">
+    <MudGrid Spacing="2" Justify="Justify.Center">
+        <MudItem xs="4">
+            <MudStack Row="true">
+                <MudForm @ref="form" @bind-IsValid="@_success">
+                    <MudTextField T="string" Label="Command" @bind-Value="@_command" Required="true"
+                    Immediate="@true" RequiredError="Name is required" />
+                </MudForm>
+                <MudForm>
+                    <MudTextField T="string" Label="Argments" @bind-Value="@_arguments" Required="false"
+                    Immediate="@true" />
+                </MudForm>
+            </MudStack>
+        </MudItem>
+
+        <MudItem xs="2">
+            <MudStack>
+                <MudForm>
+                    <MudTextField T="string" Label="File" @bind-Value="@_file" Required="false"
+                    Immediate="@true" />
+                </MudForm>
+                @* <MudFileUpload T="IBrowserFile" FilesChanged="UploadFiles">
+                    <ButtonTemplate>
+                        <MudButton Size="Size.Small" HtmlTag="label" Variant="Variant.Filled" Color="Color.Dark"
+                        StartIcon="@Icons.Material.Filled.CloudUpload">Upload File</MudButton>
+                        <MudText>@_uploadName - @_uploadSize bytes</MudText>
+                    </ButtonTemplate>
+                </MudFileUpload> *@
+            </MudStack>
+        </MudItem>
+
+        <MudItem xs="3">
+            <MudButton Class="mt-4" EndIcon="@Icons.Material.Filled.Send" Size="Size.Medium" Variant="Variant.Outlined" Color="Color.Primary" Disabled="@(!_success)" OnClick="@(() => OnTaskKnight())">Send</MudButton>
+            <MudButton Class="mt-4" StartIcon="@Icons.Material.Filled.Delete" Size="Size.Medium" Variant="Variant.Outlined" Disabled="@(!_success)" Color="Color.Warning" OnClick="OnClearForm">Clear</MudButton>
+            @* <MudButton Class="mt-4" StartIcon="@Icons.Material.Filled.Transform" Size="Size.Medium" Variant="Variant.Outlined" Color="Color.Info" Disabled="@(!_success)" OnClick="Encode">Encode File</MudButton> *@
+        </MudItem>
+
+    </MudGrid>
+</MudContainer>        
+
+
+
+
+@code {
+    [Parameter]
+    public string KnightId { get; set; } = "???";
+
+    private List<KnightHistory> _history = new List<KnightHistory>();
+
+    // FORM
+    private bool _success;
+    private MudForm form;
+    private string _command = "";
+    private string _arguments = "";
+    private string _file = "";
+    private long _uploadSize;
+    private string _uploadName;
+
+    // TIMER
+    private Timer timer;
+    private int refreshTime = 1000;
+
+    // COLORS
+    private string colorRed = $"color:{Colors.Red.Accent3};";
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        base.OnInitialized();
+        timer = new Timer(Tick, null, 0, refreshTime);
+        await GetKnightHistory();
+    }
+
+    private async Task GetKnightHistory()
+    {
+        try
+        {
+            _history = await KnightService.GetKnightHistorysAsync(KnightId);        
+        }
+        catch (Exception e)
+        {
+            OnError(e.ToString());
+        }        
+    }
+
+    // Task Knight
+    private async Task OnTaskKnight()
+    {
+        try
+        {
+            System.DateTimeOffset timeOffset = System.DateTimeOffset.Now;
+            TaskMessage taskMessage = await KnightService.TaskKnightAsync(KnightId, new TaskKnightRequest
+                {
+                    Command = _command.Trim(),
+                    Arguments = StringToCollection(_arguments.Trim()),
+                    File = _file.Trim()
+                //File = new byte[0] // Server expects base64 string
+                });
+
+            _history.Add(new KnightHistory
+            {
+                TaskId = taskMessage.TaskId,
+                KnightId = KnightId,
+                Command = taskMessage.Command,
+                Arguments = taskMessage.Arguments,
+                File = taskMessage.File,
+                TaskSentAt = timeOffset,
+                Status = SwaggerApi.KNIGHT_TASK_STATUS.PENDING,
+                Result = "Pending", // Fix this
+                ResultsAt = new DateTime(2025, 1, 1, 0, 0, 0) // Just a random date
+            });
+        }
+        catch (Exception e)
+        {
+            OnError(e.ToString());
+        }
+    }
+
+    // Update Task Results
+    private async Task UpdateTaskResults()
+    {
+        try
+        {
+            foreach (KnightHistory hist in _history)
+            {
+                if (!hist.IsTaskFinished())
+                {
+                    TaskResultMessage res = await KnightService.GetTaskResultAsync(KnightId, hist.TaskId);
+                    if (res.Result != "Pending") // fix this
+                    {
+                        hist.Status = KNIGHT_TASK_STATUS.FINISHED;
+                        hist.Result = res.Result;
+                        hist.ResultsAt = res.CompletetedAt;
+                    }
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            OnError(e.ToString());
+        }
+    }
+
+    // On Clear Form
+    private void OnClearForm()
+    {
+        _command = String.Empty;
+        _arguments = String.Empty;
+        _file = String.Empty;
+        _uploadName = String.Empty;
+        _uploadSize = 0;
+    }
+
+    // Upload File
+    // private async void UploadFiles(IBrowserFile data)       // PROBLEM: seems like data is not read in binary-mode (encoding and running execute-assembly does not work)
+    // {
+    //     try
+    //     {
+    //         // read file and set data to the _file var
+    //         // Need to open a stream to read [https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.components.forms.ibrowserfile.openreadstream?view=aspnetcore-7.0#microsoft-aspnetcore-components-forms-ibrowserfile-openreadstream(system-int64-system-threading-cancellationtoken)]
+    //         using (Stream stream = data.OpenReadStream(1200000)) // 1.2 GB
+    //         {
+    //             using (StreamReader reader = new StreamReader(stream))
+    //             {
+    //                 _file = await reader.ReadToEndAsync();
+    //             }
+    //         }
+
+    //         _uploadName = data.Name;
+    //         _uploadSize = data.Size;
+    //         await InvokeAsync(StateHasChanged);
+    //     }
+    //     catch (Exception e)
+    //     {
+    //         OnError(e.ToString());
+    //     }
+    // }
+
+    // Encode File
+    // private void Encode() // NEEDS a check, can encode more than once this way
+    // {
+    //     try
+    //     {
+    //         _file = Convert.ToBase64String(Encoding.UTF8.GetBytes(_file)); // Soldier cant execute this :(
+    //     }
+    //     catch (Exception e)
+    //     {
+    //         OnError(e.ToString());
+    //     }
+    // }
+
+    private ICollection<string> StringToCollection(string s)
+    {
+        ICollection<string> collection = new List<string>();
+        // string temp = "";
+        // int i = 0;
+
+        // foreach (char c in s)
+        // {
+        //     temp += c;
+
+        //     if (c == ' ')
+        //     {
+        //         collection.Add(temp);
+        //         temp = "";
+        //     }
+        //     else if (i + 1 == s.Length) // End of string
+        //     {
+        //         collection.Add(temp);
+        //     }
+        //     i++;
+        // }
+
+        string[] split = s.Split();
+        foreach (string sp in split)
+        {
+            collection.Add(sp.Trim());
+        }
+
+        return collection;
+    }
+
+    private string BuildTaskTitle(string time, string cmd)
+    {
+        return $"[{time}] >> {cmd}";
+    }
+
+    private string CollectionToString(ICollection<string> c)
+    {
+        string collection = "";
+
+        if (c.Count > 0) // Redundant? the foreach loop would simply finish on the first pass if empty right?
+        {
+            foreach (string s in c)
+            {
+                collection += s + " ";
+            }
+        }
+
+        return collection;
+    }
+
+    private string BytesToString(byte[] bytes) // or byte.ToString() ?
+    {
+        int length = 200;
+        string representation = "";
+
+        representation = BitConverter.ToString(bytes);
+        if (representation.Length > length)
+        {
+            representation = representation.Substring(0, length);
+            representation += "......";
+        }
+
+        return representation;
+    }
+
+    private void OnError(string msg)
+    {
+        var config = (SnackbarOptions options) =>
+        {
+            options.DuplicatesBehavior = SnackbarDuplicatesBehavior.Prevent;
+        };
+
+        if (msg.Length > 500)
+        {
+            msg = msg.Substring(0, 500);
+            msg += "...";
+        }
+
+        SnackbarService.Configuration.PositionClass = Defaults.Classes.Position.BottomRight;
+        SnackbarService.Add("Error: " + msg, Severity.Error, configure: config, key: "listener-error");
+    }
+
+    private async void Tick(object _)
+    {
+        await UpdateTaskResults();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        timer?.Dispose();
+    }
+}

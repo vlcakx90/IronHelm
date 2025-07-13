@@ -1,0 +1,27 @@
+﻿@page "/"
+
+@using System.Text.RegularExpressions
+@using System.ComponentModel.DataAnnotations
+
+@inject NavigationManager Nav
+
+@* Good Form Template (https://mudblazor.com/components/form#simple-form-validation) *@
+
+<MudStack Justify="Justify.Center" Row="true">
+    <MudPaper>
+        <MudText>Login TO DO</MudText>
+        <MudButton OnClick="OnSimLogin" Variant="Variant.Outlined">Login</MudButton>
+    </MudPaper>
+</MudStack>
+
+
+@code {
+
+    protected override async Task OnInitializedAsync()
+    {
+        OnSimLogin();
+    }
+
+    private void OnSimLogin() => Nav.NavigateTo("/helm");
+
+}

@@ -1,0 +1,19 @@
+Name: Test
+Http:
+  Sleep: 2
+  Jitter: 1
+  Passwd: ThisIsThePass123
+  GetPaths:
+    - /a.php
+    - /b.php
+    - /c.php
+    - /d.php
+    - /e.php
+    - /f.php
+    - /g.php
+    - /h.php
+  PostPaths:
+    - /z.php
+    - /y.php
+    - /x.php
+    - /w.php

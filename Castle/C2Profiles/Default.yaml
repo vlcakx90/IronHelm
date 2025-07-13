@@ -1,0 +1,11 @@
+Name: Default
+Http:
+  Sleep: 2
+  Jitter: 1
+  Passwd: HelmOfIron
+  GetPaths:
+    - /index.php
+    - /home.php
+  PostPaths:
+    - /submit.php
+    - /general.php

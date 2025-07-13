@@ -1,0 +1,99 @@
+﻿@page "/helm"
+
+@using Helm.Shared.Models
+@using Helm.Shared.Components
+@using Helm.Shared.Components.Parts
+@using Helm.Shared.Components.Parts.KnightsViews
+@using Helm.Shared.Components.Parts.Popovers
+
+<MudDialogProvider />
+<MudPopoverProvider />
+<MudSnackbarProvider />
+
+@*---------------------------------------------------------------------------------------------------- TOP BUTTONS *@
+
+<MudAppBar Elevation="1">           
+    <MudButtonGroup Color="Color.Default" Variant="Variant.Outlined">
+        <IronHelmPopover />
+        <CreatePopover />
+    </MudButtonGroup>
+
+    <MudIconButton Icon="@Icons.Custom.Uncategorized.Empty"/> @* SILLY SPACER *@
+    <MudIconButton Icon="@Icons.Custom.Uncategorized.Empty"/> @* SILLY SPACER *@
+
+    <MudButtonGroup Color="Color.Primary" Variant="Variant.Outlined">
+        <MudTooltip Text="Add Commander Tab">
+            <MudIconButton OnClick="OnAddCommanderTab" Icon="@Icons.Custom.Uncategorized.ChessRook"/>
+        </MudTooltip>
+        <MudTooltip Text="TO DO: Add Team Chat Tab">
+            <MudIconButton Icon="@Icons.Material.Filled.Chat"/>
+        </MudTooltip>
+        <MudTooltip Text="TO DO: Add Event Logs Tab">
+            <MudIconButton Icon="@Icons.Material.Filled.Event"  />
+        </MudTooltip>
+        <MudTooltip Text="TO DO: Add Server Logs Tab">
+            <MudIconButton Icon="@Icons.Material.Filled.AutoGraph"  />
+        </MudTooltip>
+        <MudTooltip Text="TO DO: Add Hosted Files Tab">
+            <MudIconButton Icon="@Icons.Material.Filled.InsertDriveFile"  />
+        </MudTooltip>
+        <MudTooltip Text="TO DO: Add Saved Evidence Tab">
+            <MudIconButton Icon="@Icons.Material.Filled.Save"  />
+        </MudTooltip>
+    </MudButtonGroup>
+
+    <MudSpacer></MudSpacer>
+
+    <MudButtonGroup Color="Color.Default" Variant="Variant.Outlined">
+        <PrintPopover />
+        <SettingsPopover />
+        <HelpPopover />
+    </MudButtonGroup>
+</MudAppBar>
+
+
+@*---------------------------------------------------------------------------------------------------- BODY *@
+
+@* https://stackoverflow.com/questions/74348547/mudblazor-scrollable-content-with-pinned-toolbar *@
+
+
+<MudContainer Style="height: 350px; overflow-y: scroll" MaxWidth="MaxWidth.ExtraExtraLarge">
+    @* <MudExpansionPanel Icon="@Icons.Custom.Uncategorized.ChessKnight" IsInitiallyExpanded="true"> *@
+    <MudSwitch Color="Color.Primary" @bind-Value=@(_toggleCommanderGraphView) Label="ToggleGraph" />
+    @if (_toggleCommanderGraphView)
+    {
+        <KnightsGraphView />
+    }
+    else
+    {        
+        <KnightsTableView helmTabs="@_helmTabs"/>
+    }
+    @* </MudExpansionPanel> *@
+</MudContainer>
+
+<MudContainer Style="max-height: 600px; overflow-y: scroll" MaxWidth="MaxWidth.ExtraExtraLarge">
+    <HelmTabs @ref="@_helmTabs" />
+</MudContainer>
+
+@*---------------------------------------------------------------------------------------------------- CODE *@
+
+@code {
+    private HelmTabs _helmTabs = new HelmTabs();
+    private bool _toggleCommanderGraphView = false;
+
+
+    protected override async Task OnInitializedAsync() 
+    {
+        //_helmTabs = new HelmTabs(); // FAILS lol
+        //await OnAddCommanderTab();  // FAILS lol
+    }
+
+    private void ToggleCommanderGraphView() => _toggleCommanderGraphView = !_toggleCommanderGraphView;
+        
+    
+    private async Task OnAddCommanderTab()
+    {
+        await _helmTabs.AddCommanderTab();
+    }
+
+}
