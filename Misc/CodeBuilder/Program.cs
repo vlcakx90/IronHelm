@@ -28,12 +28,6 @@ namespace CodeBuilder
             Console.WriteLine("\n" + spacer + $"Compiling: SharedArsenal");
             await BuildArsenal();
 
-            ////// MB
-            Console.WriteLine(spacer + $"Compiling: MB Staged");
-            await BuildMBStaged();
-            Console.WriteLine(spacer + $"Compiling: MB Stageless");
-            await BuildMBStageless();
-
             ////// Knights
             Console.WriteLine("\n" + spacer + $"Compiling: Knight with {Knight_Type.Egress}");
             await BuildKnight(Knight_Type.Egress);
@@ -47,6 +41,12 @@ namespace CodeBuilder
             //await BuildKnight(Knight_Type.P2P_TCP_CLIENT);
             //Console.WriteLine("\n" + spacer + $"Compiling: Knight with {Knight_Type.P2P_SMB_CLIENT}");
             //await BuildKnight(Knight_Type.P2P_SMB_CLIENT);
+
+            ////// MB
+            Console.WriteLine("\n" + spacer + $"Compiling: MB Staged");
+            await BuildMBStaged();
+            Console.WriteLine("\n" + spacer + $"Compiling: MB Stageless");
+            await BuildMBStageless();
         }
 
         private static async Task BuildArsenal()
@@ -156,7 +156,7 @@ namespace CodeBuilder
         //    File.WriteAllBytes(asmOut, asmBytes);            
         //}
 
-        #region WillJustUseC2ServiceinCastle
+        #region TempMacros
         private static List<string> TempGetSharedArsenalMacros()
         {
             List<string> macros = new List<string>();

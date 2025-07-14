@@ -17,7 +17,7 @@ namespace CodeBuilder
                 Console.WriteLine("[!] Failed to set C2Profile");
                 return false;
             }
-            c2.PrintCurrentProfile();
+            //c2.PrintCurrentProfile();
 
             return true;
         }
@@ -67,9 +67,9 @@ namespace CodeBuilder
                     break;
             }
             
-            Console.WriteLine("\n================== Settings.cs");
-            Console.WriteLine(fileText);
-            Console.WriteLine("==================\n");
+            //Console.WriteLine("\n================== Settings.cs");
+            //Console.WriteLine(fileText);
+            //Console.WriteLine("==================\n");
 
             return fileText;
         }
@@ -97,9 +97,9 @@ namespace CodeBuilder
                     break;
             }
 
-            Console.WriteLine("\n================== Settings.cs");
-            Console.WriteLine(fileText);
-            Console.WriteLine("==================\n");
+            //Console.WriteLine("\n================== Settings.cs");
+            //Console.WriteLine(fileText);
+            //Console.WriteLine("==================\n");
 
             return fileText;
         }
@@ -198,9 +198,9 @@ namespace CodeBuilder
             // SharedArsenal
             fileText = fileText.Replace("{{R_SharedArsenal}}", $"{_c2Profile.SharedArsenal.ResourceName}");
 
-            Console.WriteLine("\n================== Settings.cs");
-            Console.WriteLine(fileText);
-            Console.WriteLine("==================\n");
+            //Console.WriteLine("\n================== Settings.cs");
+            //Console.WriteLine(fileText);
+            //Console.WriteLine("==================\n");
 
             return fileText;
         }
@@ -219,9 +219,9 @@ namespace CodeBuilder
             // SharedArsenal
             fileText = fileText.Replace("{{R_SharedArsenal}}", $"{_c2Profile.SharedArsenal.ResourceName}");
 
-            Console.WriteLine("\n================== Settings.cs");
-            Console.WriteLine(fileText);
-            Console.WriteLine("==================\n");
+            //Console.WriteLine("\n================== Settings.cs");
+            //Console.WriteLine(fileText);
+            //Console.WriteLine("==================\n");
 
             return fileText;
         }
@@ -262,9 +262,9 @@ namespace CodeBuilder
             // SharedArsenal
             fileText = fileText.Replace("{{R_SharedArsenal}}", $"{_c2Profile.SharedArsenal.ResourceName}");
 
-            Console.WriteLine("\n================== Settings.cs");
-            Console.WriteLine(fileText);
-            Console.WriteLine("==================\n");
+            //Console.WriteLine("\n================== Settings.cs");
+            //Console.WriteLine(fileText);
+            //Console.WriteLine("==================\n");
 
             return fileText;
         }
