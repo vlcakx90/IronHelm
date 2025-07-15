@@ -1,5 +1,5 @@
 # IronHelm
-# Command and Control framework in C# that I made to learn and have fun
+## Command and Control framework in C# that I made to learn and have fun
 
 ![commanders](./Images/commanders.png)
 
@@ -63,6 +63,7 @@ Modify the `castleAddress` variable with the url of your Castle instance in `Hel
 To install on the local system you can simply use the deploy function in Visual Studio 
 - In Visual Studio, right click the `Helm.MAUI` project and select 'deploy' to install the app on your system.
 - It will then be visible in the start menu
+
 ![startmenu](./Images/startmenu.png)
 
 To create a distributable app use the publish function
