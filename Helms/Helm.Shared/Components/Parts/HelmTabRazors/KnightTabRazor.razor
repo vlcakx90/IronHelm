@@ -6,16 +6,18 @@
 @inject ISnackbar SnackbarService
 
 @* Table *@
-<div id="unique_id_scroll_section" class="ma-0" style="height: 300px; overflow: auto;">
+<div id="unique_id_scroll_section" class="ma-0" style="height: 400px; overflow: auto;">
     @*CHaning the height sometimes stops the scrolling*@                    
     @foreach (KnightHistory hist in _history) // Load each Task
     {
-        <MudExpansionPanel Icon="@Icons.Material.Filled.Check" IsInitiallyExpanded="true" Text=@BuildTaskTitle(hist.TaskSentAt.ToString(), hist.Command)>
+        <MudExpansionPanel Icon="@Icons.Material.Filled.Check" IsInitiallyExpanded="true" Class="mud-success-text" Text=@BuildTaskTitle(hist.TaskSentAt.ToString(), hist.Command)>
             <MudContainer Class="py-4">
                 <MudCard>
                     <MudCardContent>
-                        <MudText>Task Info</MudText>
-                        <MudText Typo="Typo.body2">args > @CollectionToString(hist.Arguments) <br>file > @BytesToString(hist.File)</MudText>
+                        <MudText Class="mud-primary-text">Task Info</MudText>
+                        @* <MudText Typo="Typo.body2">args > @CollectionToString(hist.Arguments) <br>file > @BytesToString(hist.File)</MudText> *@
+                        <MudText Typo="Typo.body2">args > @CollectionToString(hist.Arguments) 
+                                               <br>file > @hist.File.Length Bytes</MudText>
                     </MudCardContent>
                 </MudCard>
             </MudContainer>
@@ -25,7 +27,7 @@
                 {
                     <MudCard>
                         <MudCardContent>
-                            <MudText>@BuildTaskTitle(hist.ResultsAt.ToString(), "Result")</MudText>                            
+                            <MudText Class="mud-primary-text">@BuildTaskTitle(hist.ResultsAt.ToString(), "Result")</MudText>
                             <MudText Typo="Typo.body2">@hist.Result</MudText>
                         </MudCardContent>
                     </MudCard>

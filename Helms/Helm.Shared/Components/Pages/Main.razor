@@ -48,6 +48,8 @@
         <PrintPopover />
         <SettingsPopover />
         <HelpPopover />
+        <MudIconButton Title="Github" Href="https://github.com/" Variant="Variant.Outlined" Icon="@Icons.Custom.Brands.GitHub" Color="Color.Primary">
+        </MudIconButton>
     </MudButtonGroup>
 </MudAppBar>
 
@@ -71,7 +73,7 @@
     @* </MudExpansionPanel> *@
 </MudContainer>
 
-<MudContainer Style="max-height: 600px; overflow-y: scroll" MaxWidth="MaxWidth.ExtraExtraLarge">
+<MudContainer Style="max-height: 700px; overflow-y: scroll" MaxWidth="MaxWidth.ExtraExtraLarge">
     <HelmTabs @ref="@_helmTabs" />
 </MudContainer>
 
