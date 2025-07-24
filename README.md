@@ -1,5 +1,5 @@
 # IronHelm
-## Command and Control framework in C# that I made to learn and have fun
+A Command and Control framework written in C#, consisting of a .NET Framework agent, ASP.NET teamserver, and  Blazor client. Configurable via a C2 Profile that details comm and build specifications.
 
 ![commanders](./Images/commanders.png)
 
